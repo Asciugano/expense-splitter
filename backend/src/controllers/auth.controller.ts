@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/jwt.ts";
+import User from "../models/user.ts";
 
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
@@ -10,7 +11,7 @@ export async function login(req: Request, res: Response) {
         .status(401)
         .json({ error: true, message: "Invalid credential" });
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await User.findOne({ email });
     if (!user)
       return res
         .status(401)
@@ -22,7 +23,7 @@ export async function login(req: Request, res: Response) {
         .status(401)
         .json({ error: true, message: "Invalid credential" });
 
-    const token = await generateToken(user.id, res);
+    const token = await generateToken(user._id.toString(), res);
 
     res.json({ user });
   } catch (e) {
@@ -31,7 +32,7 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function logout(req: Request, res: Response) {
+export async function register(req: Request, res: Response) {
   const { email, fullName, password } = req.body;
   try {
     if (!email || !fullName || !password)
@@ -39,7 +40,7 @@ export async function logout(req: Request, res: Response) {
         .status(400)
         .json({ error: true, message: "All fields are required" });
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await User.findOne({ email });
     if (user)
       return res.status(400).json({
         error: true,
@@ -49,12 +50,10 @@ export async function logout(req: Request, res: Response) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        fullName,
-      },
+    const newUser = new User({
+      fullName,
+      email,
+      password: hashedPassword,
     });
 
     if (!newUser)
@@ -63,16 +62,17 @@ export async function logout(req: Request, res: Response) {
         message: "Could not create this account. try again later",
       });
 
-    const token = generateToken(user.id, res);
+    const token = generateToken(newUser._id.toString(), res);
+    await newUser.save();
 
     res.status(201).json({ user: newUser });
   } catch (e) {
-    console.error(`error in register controller: ${e}`);
+    console.error(`error in logout controller: ${e}`);
     res.status(500).json({ error: true, message: "Someting went wrog" });
   }
 }
 
-export async function register(req: Request, res: Response) {
+export async function logout(req: Request, res: Response) {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
     res.status(200).json({ message: "logout succussfully" });
