@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+import mongoose, { Types, type HydratedDocument } from "mongoose";
+import type { UserDocument } from "./user.ts";
 
 const tripSchema = new mongoose.Schema(
   {
@@ -11,6 +12,12 @@ const tripSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    paretcipants: [
+      {
+        type: Types.ObjectId,
+        ref: "User",
+      },
+    ],
     expenses: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -21,6 +28,12 @@ const tripSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Trip = mongoose.model("Trip", tripSchema);
+export type TripDocument = HydratedDocument<{
+  name: string;
+  owner: UserDocument;
+  partecipants: Types.ObjectId[];
+  expenses: Types.ObjectId[];
+}>;
 
+const Trip = mongoose.model("Trip", tripSchema);
 export default Trip;

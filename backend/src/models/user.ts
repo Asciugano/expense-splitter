@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import mongoose, { Types, type HydratedDocument } from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const User = mongoose.model("User", userSchema);
+export type UserDocument = HydratedDocument<{
+  email: string;
+  fullName: string;
+  password: string;
+  trips: Types.ObjectId[];
+}>;
 
+const User = mongoose.model("User", userSchema);
 export default User;

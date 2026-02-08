@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types, type HydratedDocument } from "mongoose";
 
 const expenseSchema = new mongoose.Schema(
   {
@@ -19,6 +19,11 @@ const expenseSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Expense = mongoose.model("Expense", expenseSchema);
+export type ExpenseDocument = HydratedDocument<{
+  amount: number;
+  title: string;
+  trip: Types.ObjectId;
+}>;
 
+const Expense = mongoose.model("Expense", expenseSchema);
 export default Expense;

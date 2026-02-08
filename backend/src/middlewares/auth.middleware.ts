@@ -1,12 +1,13 @@
-import type { NextFunction, Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import type { NextFunction, Response } from "express";
+import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 import User from "../models/user.ts";
+import type { AuthRequest } from "../requests/auth.request.ts";
 
 config();
 
 export async function protectedRoute(
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -17,10 +18,7 @@ export async function protectedRoute(
         .status(401)
         .json({ error: true, message: "Unauthorized - No token provided" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload & {
-      userID: string;
-    };
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded)
       return res
         .status(401)
