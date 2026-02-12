@@ -117,6 +117,10 @@ export async function createTrip(req: AuthRequest, res: Response) {
     if (!req.user) return;
 
     const newTrip = new Trip({ name, owner: req.user._id });
+
+    req.user.trips.push(newTrip._id);
+
+    await req.user.save();
     await newTrip.save();
     res.status(201).json({ newTrip });
   } catch (e) {

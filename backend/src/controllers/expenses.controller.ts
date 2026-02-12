@@ -101,7 +101,7 @@ export async function deleteExpense(
         .json({ error: true, message: "Unable to find the requested expense" });
 
     if (!req.user) return;
-    if (!(expense.tripId.toString() in req.user.trips))
+    if (!req.user.trips.includes(expense.tripId698dad06d06240a228e5542a))
       return res
         .status(401)
         .json({ error: true, message: "This expense is not in your trips" });
@@ -141,7 +141,7 @@ export async function getExpense(
 
     if (!req.user) return;
 
-    if (!(expense.tripId.toString() in req.user.trips))
+    if (!req.user.trips.includes(expense.tripId))
       return res.status(401).json({
         error: true,
         message: "This expense is not in your trips",
@@ -170,7 +170,7 @@ export async function pay(req: AuthRequest<{ id: string }>, res: Response) {
         .json({ error: true, message: "Unable to find the requested expense" });
 
     expense.amount -= amount;
-    if (expense.amount < 0) expense.amount = 0;
+    if (expense.amount <= 0) await expense.deleteOne();
 
     await expense.save();
     res.json({ amount: expense.amount });

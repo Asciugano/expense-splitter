@@ -6,12 +6,13 @@ import {
   getAllExpenses,
   updateExpenses,
   pay,
+  getExpense,
 } from "../controllers/expenses.controller.ts";
 
 const router = express.Router();
 
 router.get("/trip/:id", protectedRoute, getAllExpenses);
-router.get("/:id", protectedRoute, getAllExpenses);
+router.get("/:id", protectedRoute, getExpense);
 router.post("/:id", protectedRoute, createExpense);
 router.patch("/:id", protectedRoute, pay);
 router.put("/:id", protectedRoute, updateExpenses);
