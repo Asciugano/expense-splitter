@@ -27,9 +27,16 @@ export async function createExpense(
         .status(400)
         .json({ error: true, message: "All fields are required" });
 
+    const trip = await Trip.findById(req.params.id);
+    if (!trip)
+      return res
+        .status(404)
+        .json({ error: true, message: "unable to find the requested trip" });
+
     const newExpense = new Expense({
       title,
       amount,
+      tripId: req.params.id,
     });
 
     if (!newExpense)
