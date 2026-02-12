@@ -131,7 +131,7 @@ export async function joinTrip(
 ) {
   try {
     if (!req.user) return;
-    const trip = await Trip.findById(req.params.id);
+    const trip = await Trip.findById(req.params.id).populate("expenses");
     if (!trip)
       return res
         .status(404)
