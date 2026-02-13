@@ -1,9 +1,21 @@
 import 'package:expense_splitter/core/constraints.dart';
-import 'package:expense_splitter/views/widget_tree.dart';
+
+import 'package:expense_splitter/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_splitter/features/auth/presentation/pages/login_page.dart';
+import 'package:expense_splitter/init_dependencies.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
-  runApp(const App());
+  WidgetsFlutterBinding.ensureInitialized();
+  await initDependencies();
+
+  runApp(
+    MultiBlocProvider(
+      providers: [BlocProvider(create: (_) => serviceLocator<AuthBloc>())],
+      child: App(),
+    ),
+  );
 }
 
 class App extends StatefulWidget {
@@ -14,6 +26,13 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+
+    // context.read<AuthBloc>().add(AuthIsUserLogged());
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -40,7 +59,7 @@ class _AppState extends State<App> {
         ),
       ),
       themeMode: ThemeMode.system,
-      home: WidgetTree(),
+      home: LoginPage(),
     );
   }
 }
