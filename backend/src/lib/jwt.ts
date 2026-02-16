@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import jwt from "jsonwebtoken";
 
-export async function generateToken(
+export async function generateAccessToken(
   userID: string,
   res: Response,
 ): Promise<string> {
@@ -14,4 +14,10 @@ export async function generateToken(
   });
 
   return token;
+}
+
+export function generateRefreshToken(userID: string): string {
+  return jwt.sign({ userID: userID }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
 }

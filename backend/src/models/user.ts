@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    refreshToken: {
+      type: String,
+    },
     trips: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +33,7 @@ export type UserDocument = HydratedDocument<{
   email: string;
   fullName: string;
   password: string;
+  refreshToken: string | null;
   trips: Types.ObjectId[];
 }>;
 
