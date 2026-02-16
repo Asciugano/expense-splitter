@@ -1,3 +1,4 @@
+import 'package:expense_splitter/core/pages/home_page.dart';
 import 'package:expense_splitter/core/utils/show_snackbar.dart';
 import 'package:expense_splitter/core/widgets/loader.dart';
 import 'package:expense_splitter/features/auth/presentation/bloc/auth_bloc.dart';
@@ -37,6 +38,12 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthFailure) showSnackBar(context, state.message);
+          if (state is AuthSuccess) {
+            Navigator.pushReplacement(context, HomePage.route());
+          }
+          if (state is AuthLogout) {
+            showSnackBar(context, 'Logout out successfully');
+          }
         },
         builder: (context, state) {
           if (state is AuthLoading) {
@@ -65,19 +72,27 @@ class _LoginPageState extends State<LoginPage> {
                     isPassword: true,
                   ),
 
-                  const SizedBox(height: 20),
-                  FilledButton(
-                    child: Text('Login'),
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        context.read<AuthBloc>().add(
-                          AuthLogin(
-                            email: emailController.text.trim(),
-                            password: passwordController.text.trim(),
-                          ),
-                        );
-                      }
-                    },
+                  const SizedBox(height: 100),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.circular(20),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          context.read<AuthBloc>().add(
+                            AuthLogin(
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim(),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text('Login'),
+                    ),
                   ),
 
                   const SizedBox(height: 10),

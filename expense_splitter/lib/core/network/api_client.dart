@@ -115,11 +115,11 @@ class ApiClient {
 
   Future<dynamic> get(String endPoint) =>
       _request(method: Method.get, endPoint: endPoint);
-  Future<dynamic> post(String endPoint, Map<String, dynamic> body) =>
+  Future<dynamic> post(String endPoint, Map<String, dynamic>? body) =>
       _request(method: Method.post, endPoint: endPoint, body: body);
-  Future<dynamic> put(String endPoint, Map<String, dynamic> body) =>
+  Future<dynamic> put(String endPoint, Map<String, dynamic>? body) =>
       _request(method: Method.put, endPoint: endPoint, body: body);
-  Future<dynamic> patch(String endPoint, Map<String, dynamic> body) =>
+  Future<dynamic> patch(String endPoint, Map<String, dynamic>? body) =>
       _request(method: Method.patch, endPoint: endPoint, body: body);
   Future<dynamic> delete(String endPoint) =>
       _request(method: Method.delete, endPoint: endPoint);

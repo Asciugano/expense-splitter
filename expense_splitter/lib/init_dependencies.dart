@@ -5,8 +5,10 @@ import 'package:expense_splitter/features/auth/data/repositories/auth_repository
 import 'package:expense_splitter/features/auth/domain/repository/auth_repository.dart';
 import 'package:expense_splitter/features/auth/domain/usecases/current_user.dart';
 import 'package:expense_splitter/features/auth/domain/usecases/user_login.dart';
+import 'package:expense_splitter/features/auth/domain/usecases/user_logout.dart';
 import 'package:expense_splitter/features/auth/domain/usecases/user_register.dart';
 import 'package:expense_splitter/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_splitter/features/trips/presentation/bloc/trips_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 final serviceLocator = GetIt.instance;
@@ -20,7 +22,9 @@ Future<void> initDependencies() async {
 
   serviceLocator.registerLazySingleton(() => apiClient);
   serviceLocator.registerLazySingleton(() => tokenStorage);
+
   _initAuth();
+  _initTrips();
 }
 
 void _initAuth() {
@@ -35,12 +39,18 @@ void _initAuth() {
   serviceLocator.registerFactory(() => UserRegister(serviceLocator()));
   serviceLocator.registerFactory(() => UserLogin(serviceLocator()));
   serviceLocator.registerFactory(() => CurrentUser(serviceLocator()));
+  serviceLocator.registerFactory(() => UserLogout(serviceLocator()));
 
   serviceLocator.registerLazySingleton(
     () => AuthBloc(
       userLogin: serviceLocator(),
       userRegister: serviceLocator(),
       currentUser: serviceLocator(),
+      userLogout: serviceLocator(),
     ),
   );
+}
+
+void _initTrips() {
+  serviceLocator.registerLazySingleton(() => TripsBloc());
 }

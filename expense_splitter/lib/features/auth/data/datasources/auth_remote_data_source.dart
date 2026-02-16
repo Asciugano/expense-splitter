@@ -13,6 +13,7 @@ abstract interface class AuthRemoteDataSource {
   Future<User> login({required String email, required String password});
 
   Future<User?> getCurrentUser();
+  Future<String> logout();
 }
 
 class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
@@ -55,6 +56,18 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
     try {
       final res = await apiClient.get("/auth/me");
       return User.fromJson(res);
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<String> logout() async {
+    try {
+      final res = await apiClient.post('/auth/logout', null);
+      tokenStorage.clear();
+
+      return res['message'];
     } catch (e) {
       throw ServerException(e.toString());
     }

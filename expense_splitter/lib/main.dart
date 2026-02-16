@@ -2,6 +2,7 @@ import 'package:expense_splitter/core/constraints.dart';
 
 import 'package:expense_splitter/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:expense_splitter/features/auth/presentation/pages/login_page.dart';
+import 'package:expense_splitter/features/trips/presentation/bloc/trips_bloc.dart';
 import 'package:expense_splitter/init_dependencies.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +13,10 @@ void main() async {
 
   runApp(
     MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => serviceLocator<AuthBloc>())],
+      providers: [
+        BlocProvider(create: (_) => serviceLocator<AuthBloc>()),
+        BlocProvider(create: (_) => serviceLocator<TripsBloc>()),
+      ],
       child: App(),
     ),
   );
@@ -59,7 +63,7 @@ class _AppState extends State<App> {
         ),
       ),
       themeMode: ThemeMode.system,
-      home: LoginPage(),
+      home: const LoginPage(),
     );
   }
 }
