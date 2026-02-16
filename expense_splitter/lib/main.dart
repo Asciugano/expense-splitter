@@ -30,7 +30,7 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
 
-    // context.read<AuthBloc>().add(AuthIsUserLogged());
+    context.read<AuthBloc>().add(AuthIsUserLogged());
   }
 
   @override

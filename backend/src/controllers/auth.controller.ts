@@ -137,3 +137,7 @@ export async function refresh(req: Request, res: Response) {
     res.status(500).json({ error: true, message: "Someting went wrog" });
   }
 }
+
+export function me(req: AuthRequest, res: Response) {
+  res.json({ user: req.user });
+}

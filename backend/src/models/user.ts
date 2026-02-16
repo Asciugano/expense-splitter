@@ -33,7 +33,7 @@ export type UserDocument = HydratedDocument<{
   email: string;
   fullName: string;
   password: string;
-  refreshToken: string | null;
+  refreshToken?: string | null;
   trips: Types.ObjectId[];
 }>;
 

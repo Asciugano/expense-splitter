@@ -1,27 +1,24 @@
 import 'dart:convert';
 
 import 'package:expense_splitter/core/exception/exception.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:expense_splitter/core/token/token_storage.dart';
 import 'package:http/http.dart' as http;
+
+enum Method { post, get, put, patch, delete }
 
 class ApiClient {
   final String baseUrl;
   final http.Client _client;
-  final FlutterSecureStorage _storage;
+  final TokenStorage _storage;
 
-  ApiClient({
-    required this.baseUrl,
-    http.Client? client,
-    FlutterSecureStorage? storage,
-  }) : _client = client ?? http.Client(),
-       _storage = storage ?? const FlutterSecureStorage();
+  bool _isRefreshing = false;
 
-  Future<String?> _getToken() async {
-    return await _storage.read(key: 'jwt');
-  }
+  ApiClient({required this.baseUrl, http.Client? client, TokenStorage? storage})
+    : _client = client ?? http.Client(),
+      _storage = storage ?? TokenStorage();
 
   Future<Map<String, String>> _headers() async {
-    final token = await _getToken();
+    final token = await _storage.getAccessToken();
 
     final headers = {'Content-Type': 'application/json'};
 
@@ -30,69 +27,100 @@ class ApiClient {
     return headers;
   }
 
-  Future<dynamic> get(String endpoint) async {
-    final res = await _client.get(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: await _headers(),
-    );
+  Future<void> _refreshToken() async {
+    if (_isRefreshing) return;
 
-    return _handleResponse(res);
-  }
+    _isRefreshing = true;
 
-  Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
+    final refreshToken = await _storage.getRefreshToken();
+    if (refreshToken == null) throw ServerException("No refresh token");
+
     final res = await _client.post(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: await _headers(),
-      body: jsonEncode(body),
+      Uri.parse('$baseUrl/auth/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({"refreshToken": refreshToken}),
     );
 
-    return _handleResponse(res);
+    if (res.statusCode == 200) {
+      final decoded = jsonDecode(res.body);
+      await _storage.saveTokens(
+        decoded["accessToken"],
+        decoded["refreshToken"],
+      );
+    } else {
+      await _storage.clear();
+      throw ServerException("Session expired");
+    }
+
+    _isRefreshing = false;
   }
 
-  Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
-    final res = await _client.put(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: await _headers(),
-      body: jsonEncode(body),
-    );
+  Future<dynamic> _request({
+    required Method method,
+    required String endPoint,
+    Map<String, dynamic>? body,
+    bool retrying = false,
+  }) async {
+    final uri = Uri.parse('$baseUrl$endPoint');
+    late http.Response res;
 
-    return _handleResponse(res);
-  }
+    switch (method) {
+      case Method.get:
+        res = await _client.get(uri, headers: await _headers());
+        break;
+      case Method.post:
+        res = await _client.post(
+          uri,
+          headers: await _headers(),
+          body: jsonEncode(body),
+        );
+        break;
+      case Method.put:
+        res = await _client.put(
+          uri,
+          headers: await _headers(),
+          body: jsonEncode(body),
+        );
+        break;
+      case Method.patch:
+        res = await _client.patch(
+          uri,
+          headers: await _headers(),
+          body: jsonEncode(body),
+        );
+        break;
+      case Method.delete:
+        res = await _client.delete(uri, headers: await _headers());
+        break;
 
-  Future<dynamic> patch(String endpoint, Map<String, dynamic> body) async {
-    final res = await _client.patch(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: await _headers(),
-      body: jsonEncode(body),
-    );
+      default:
+        throw ServerException('Invalid Method');
+    }
 
-    return _handleResponse(res);
-  }
+    if (res.statusCode == 401 && !retrying) {
+      await _refreshToken();
+      return _request(
+        method: method,
+        endPoint: endPoint,
+        body: body,
+        retrying: true,
+      );
+    }
 
-  Future<dynamic> delete(String endpoint) async {
-    final res = await _client.delete(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: await _headers(),
-    );
-
-    return _handleResponse(res);
-  }
-
-  dynamic _handleResponse(http.Response res) {
     final decoded = res.body.isNotEmpty ? jsonDecode(res.body) : null;
 
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      return decoded;
-    } else {
-      throw ServerException(decoded?['message']);
-    }
+    if (res.statusCode >= 200 && res.statusCode < 300) return decoded;
+    throw ServerException(decoded?['message']);
   }
 
-  Future<void> saveToken(String token) async {
-    await _storage.write(key: 'jwt', value: token);
-  }
-
-  Future<void> clearToken() async {
-    await _storage.delete(key: 'jwt');
-  }
+  Future<dynamic> get(String endPoint) =>
+      _request(method: Method.get, endPoint: endPoint);
+  Future<dynamic> post(String endPoint, Map<String, dynamic> body) =>
+      _request(method: Method.post, endPoint: endPoint, body: body);
+  Future<dynamic> put(String endPoint, Map<String, dynamic> body) =>
+      _request(method: Method.put, endPoint: endPoint, body: body);
+  Future<dynamic> patch(String endPoint, Map<String, dynamic> body) =>
+      _request(method: Method.patch, endPoint: endPoint, body: body);
+  Future<dynamic> delete(String endPoint) =>
+      _request(method: Method.delete, endPoint: endPoint);
 }

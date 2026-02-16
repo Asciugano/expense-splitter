@@ -1,6 +1,7 @@
 import express from "express";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import authRoute from "./routes/auth.route.ts";
 import tripRoute from "./routes/trip.route.ts";
@@ -13,6 +14,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cookieParser());
+
+// TODO: add cors origins
+app.use(cors());
 
 app.use("/api/auth", authRoute);
 app.use("/api/trip", tripRoute);

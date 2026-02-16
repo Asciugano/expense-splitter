@@ -95,7 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         style: Theme.of(context).textTheme.titleMedium,
                         children: [
                           TextSpan(
-                            text: 'Register',
+                            text: 'Login',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   color: Colors.greenAccent,
