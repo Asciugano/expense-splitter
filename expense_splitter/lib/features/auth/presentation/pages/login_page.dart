@@ -1,3 +1,4 @@
+import 'package:expense_splitter/core/constraints.dart';
 import 'package:expense_splitter/core/pages/home_page.dart';
 import 'package:expense_splitter/core/utils/show_snackbar.dart';
 import 'package:expense_splitter/core/widgets/loader.dart';
@@ -107,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                             text: 'Register',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
-                                  color: Colors.greenAccent,
+                                  color: KColors.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),

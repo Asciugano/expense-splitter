@@ -48,17 +48,17 @@ class _AppState extends State<App> {
           backgroundColor: Theme.of(context).colorScheme.secondary,
           elevation: 0,
         ),
-        appBarTheme: KAppBar.appBarTheme(Colors.greenAccent, Colors.white),
+        appBarTheme: KAppBar.appBarTheme(KColors.primary, Colors.white),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.greenAccent,
+          seedColor: KColors.primary,
           brightness: Brightness.light,
         ),
       ),
       darkTheme: ThemeData(
         useMaterial3: false,
-        appBarTheme: KAppBar.appBarTheme(Colors.greenAccent, Colors.white),
+        appBarTheme: KAppBar.appBarTheme(KColors.primary, Colors.white),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.greenAccent,
+          seedColor: KColors.primary,
           brightness: Brightness.dark,
         ),
       ),

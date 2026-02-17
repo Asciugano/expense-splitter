@@ -7,3 +7,7 @@ class KAppBar {
     centerTitle: true,
   );
 }
+
+class KColors {
+  static Color primary = Colors.greenAccent;
+}
