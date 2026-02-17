@@ -107,7 +107,10 @@ export async function deleteTrip(
 }
 
 export async function createTrip(req: AuthRequest, res: Response) {
-  const { name, partecipants = [] } = req.body;
+  const { name } = req.body;
+  const partecipants = Array.isArray(req.body.partecipants)
+    ? req.body.partecipants
+    : [];
   try {
     if (!name)
       return res

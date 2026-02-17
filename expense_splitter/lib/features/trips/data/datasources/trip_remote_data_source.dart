@@ -4,11 +4,7 @@ import 'package:expense_splitter/core/network/api_client.dart';
 
 abstract interface class TripRemoteDataSource {
   Future<List<Trip>> getTrips();
-  Future<Trip> createTrip({
-    required String name,
-    required User owner,
-    List<User>? partecipants,
-  });
+  Future<Trip> createTrip({required String name, List<User>? partecipants});
   Future<Trip> updateTrip(Trip tirp, Trip newTrip);
   Future<void> deleteTrip(Trip tirp);
 }
@@ -21,7 +17,6 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
   @override
   Future<Trip> createTrip({
     required String name,
-    required User owner,
     List<User>? partecipants,
   }) async {
     final res = await apiClient.post('/trip', {

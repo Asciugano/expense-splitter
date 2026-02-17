@@ -12,14 +12,9 @@ final class GetTrips extends TripsEvent {}
 
 final class CreateTrip extends TripsEvent {
   final String name;
-  final User owner;
-  final List<User> partecipants;
+  final List<User>? partecipants;
 
-  const CreateTrip({
-    required this.partecipants,
-    required this.name,
-    required this.owner,
-  });
+  const CreateTrip({this.partecipants, required this.name});
 
   @override
   List<Object?> get props => [name];

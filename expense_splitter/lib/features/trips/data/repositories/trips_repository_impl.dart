@@ -14,13 +14,11 @@ class TripsRepositoryImpl implements TripsRepository {
   @override
   Future<Either<Failure, Trip>> createTrip({
     required String name,
-    required User owner,
     List<User>? partecipants,
   }) async {
     try {
       final trip = await tripRemoteDataSource.createTrip(
         name: name,
-        owner: owner,
         partecipants: partecipants,
       );
 

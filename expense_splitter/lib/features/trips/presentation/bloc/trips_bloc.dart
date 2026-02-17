@@ -26,8 +26,7 @@ class TripsBloc extends Bloc<TripsEvent, TripsState> {
        _create = create,
        _update = update,
        _delete = delete,
-       super(TripsInitial()) {
-    on<TripsEvent>((_, emit) => emit(TripsLoading()));
+       super(TripsLoading()) {
     on<GetTrips>(_onGetTrips);
     on<CreateTrip>(_onCreateTrip);
     on<DeleteTrip>(_onDeleteTrip);
@@ -35,6 +34,7 @@ class TripsBloc extends Bloc<TripsEvent, TripsState> {
   }
 
   void _onGetTrips(GetTrips event, Emitter<TripsState> emit) async {
+    emit(TripsLoading());
     final res = await _getAll.call(NoParams());
 
     res.fold((l) => emit(TripsFailure(l.message)), (r) => emit(TripsLoaded(r)));
@@ -42,14 +42,13 @@ class TripsBloc extends Bloc<TripsEvent, TripsState> {
 
   void _onCreateTrip(CreateTrip event, Emitter<TripsState> emit) async {
     final res = await _create.call(
-      CreateTripParams(
-        name: event.name,
-        owner: event.owner,
-        partecipants: event.partecipants,
-      ),
+      CreateTripParams(name: event.name, partecipants: event.partecipants),
     );
 
-    res.fold((l) => emit(TripsFailure(l.message)), (r) => emit(TripSuccess(r)));
+    res.fold(
+      (l) => emit(TripsFailure(l.message)),
+      (r) => _emitSuccess(r, emit),
+    );
   }
 
   void _onDeleteTrip(DeleteTrip event, Emitter<TripsState> emit) async {
@@ -66,6 +65,16 @@ class TripsBloc extends Bloc<TripsEvent, TripsState> {
       UpdateTripParams(trip: event.trip, newTrip: event.newTrip),
     );
 
-    res.fold((l) => emit(TripsFailure(l.message)), (r) => emit(TripSuccess(r)));
+    res.fold(
+      (l) => emit(TripsFailure(l.message)),
+      (r) => _emitSuccess(r, emit),
+    );
+  }
+
+  void _emitSuccess(Trip trip, Emitter<TripsState> emit) async {
+    final currentTrips = List<Trip>.from((state as TripsLoaded).trips);
+    currentTrips.add(trip);
+
+    emit(TripSuccess(currentTrips));
   }
 }

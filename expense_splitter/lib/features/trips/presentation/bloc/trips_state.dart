@@ -31,7 +31,7 @@ final class TripsFailure extends TripsState {
 }
 
 final class TripSuccess extends TripsState {
-  final Trip trip;
+  final List<Trip> trip;
 
   const TripSuccess(this.trip);
 }

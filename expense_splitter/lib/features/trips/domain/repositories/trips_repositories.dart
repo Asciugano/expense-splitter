@@ -7,7 +7,6 @@ abstract interface class TripsRepository {
   Future<Either<Failure, List<Trip>>> getTrips();
   Future<Either<Failure, Trip>> createTrip({
     required String name,
-    required User owner,
     List<User>? partecipants,
   });
   Future<Either<Failure, Trip>> updateTrip(Trip trip, Trip newTrip);

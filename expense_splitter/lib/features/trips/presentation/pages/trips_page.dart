@@ -59,9 +59,75 @@ class _TripsPageState extends State<TripsPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => _showCreateTripSheet(context),
         child: Icon(Icons.add),
       ),
+    );
+  }
+
+  void _showCreateTripSheet(BuildContext context) {
+    final TextEditingController nameController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Create a Trip',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Trip Name',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Enter a Name' : null,
+                  ),
+
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          context.read<TripsBloc>().add(
+                            CreateTrip(name: nameController.text.trim()),
+                          );
+
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text('Create'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

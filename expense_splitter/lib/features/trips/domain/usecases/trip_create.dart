@@ -14,7 +14,6 @@ class TripCreate implements Usecase<Trip, CreateTripParams> {
   Future<Either<Failure, Trip>> call(CreateTripParams params) async {
     return await repository.createTrip(
       name: params.name,
-      owner: params.owner,
       partecipants: params.partecipants,
     );
   }
@@ -22,12 +21,7 @@ class TripCreate implements Usecase<Trip, CreateTripParams> {
 
 class CreateTripParams {
   final String name;
-  final User owner;
   final List<User>? partecipants;
 
-  CreateTripParams({
-    required this.name,
-    required this.partecipants,
-    required this.owner,
-  });
+  CreateTripParams({required this.name, required this.partecipants});
 }
