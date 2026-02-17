@@ -29,3 +29,11 @@ final class TripsFailure extends TripsState {
   @override
   List<Object?> get props => [message];
 }
+
+final class TripSuccess extends TripsState {
+  final Trip trip;
+
+  const TripSuccess(this.trip);
+}
+
+class TripOperationSuccess extends TripsState {}

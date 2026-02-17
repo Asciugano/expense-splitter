@@ -12,7 +12,7 @@ const tripSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    paretcipants: [
+    partecipants: [
       {
         type: Types.ObjectId,
         ref: "User",

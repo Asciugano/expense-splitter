@@ -43,7 +43,7 @@ export async function updateTrip(
   req: AuthRequest<{ id: string }, any>,
   res: Response,
 ) {
-  const { name, expenses, paretcipants: partecipants } = req.body;
+  const { name, expenses, partecipants } = req.body;
   try {
     if (!name && !expenses && !partecipants)
       return res
@@ -59,12 +59,12 @@ export async function updateTrip(
     if (!req.user) return;
 
     const isOwner = trip.owner.equals(req.user._id);
-    const isPartecipant = trip.paretcipants.includes(req.user._id);
+    const isPartecipant = trip.partecipants.includes(req.user._id);
 
     if (isOwner) {
       if (name) trip.name = name;
       if (expenses) trip.expenses = expenses;
-      if (partecipants) trip.paretcipants = partecipants;
+      if (partecipants) trip.partecipants = partecipants;
     } else if (isPartecipant && expenses) {
       trip.expenses.push(...expenses);
     } else {
@@ -107,7 +107,7 @@ export async function deleteTrip(
 }
 
 export async function createTrip(req: AuthRequest, res: Response) {
-  const { name } = req.body;
+  const { name, partecipants = [] } = req.body;
   try {
     if (!name)
       return res
@@ -116,7 +116,11 @@ export async function createTrip(req: AuthRequest, res: Response) {
 
     if (!req.user) return;
 
-    const newTrip = new Trip({ name, owner: req.user._id });
+    const newTrip = new Trip({
+      name,
+      owner: req.user._id,
+      partecipants: [...partecipants, req.user._id],
+    });
 
     req.user.trips.push(newTrip._id);
 
@@ -141,10 +145,10 @@ export async function joinTrip(
         .status(404)
         .json({ error: true, message: "Could not find the trip" });
 
-    if (trip.paretcipants.includes(req.user._id))
+    if (trip.partecipants.includes(req.user._id))
       return res.status(400).json({ error: true, message: "Already joined" });
 
-    trip.paretcipants.push(req.user._id);
+    trip.partecipants.push(req.user._id);
     req.user.trips.push(trip._id);
     await trip.save();
     await req.user.save();

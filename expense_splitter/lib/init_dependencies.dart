@@ -8,6 +8,13 @@ import 'package:expense_splitter/features/auth/domain/usecases/user_login.dart';
 import 'package:expense_splitter/features/auth/domain/usecases/user_logout.dart';
 import 'package:expense_splitter/features/auth/domain/usecases/user_register.dart';
 import 'package:expense_splitter/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:expense_splitter/features/trips/data/datasources/trip_remote_data_source.dart';
+import 'package:expense_splitter/features/trips/data/repositories/trips_repository_impl.dart';
+import 'package:expense_splitter/features/trips/domain/repositories/trips_repositories.dart';
+import 'package:expense_splitter/features/trips/domain/usecases/trip_create.dart';
+import 'package:expense_splitter/features/trips/domain/usecases/trip_delete.dart';
+import 'package:expense_splitter/features/trips/domain/usecases/trip_get_all.dart';
+import 'package:expense_splitter/features/trips/domain/usecases/trip_update.dart';
 import 'package:expense_splitter/features/trips/presentation/bloc/trips_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -52,5 +59,25 @@ void _initAuth() {
 }
 
 void _initTrips() {
-  serviceLocator.registerLazySingleton(() => TripsBloc());
+  serviceLocator.registerFactory<TripRemoteDataSource>(
+    () => TripRemoteDataSourceImpl(serviceLocator()),
+  );
+
+  serviceLocator.registerFactory<TripsRepository>(
+    () => TripsRepositoryImpl(serviceLocator()),
+  );
+
+  serviceLocator.registerFactory(() => TripGetAll(serviceLocator()));
+  serviceLocator.registerFactory(() => TripCreate(serviceLocator()));
+  serviceLocator.registerFactory(() => TripUpdate(serviceLocator()));
+  serviceLocator.registerFactory(() => TripDelete(serviceLocator()));
+
+  serviceLocator.registerLazySingleton(
+    () => TripsBloc(
+      getAll: serviceLocator(),
+      create: serviceLocator(),
+      update: serviceLocator(),
+      delete: serviceLocator(),
+    ),
+  );
 }

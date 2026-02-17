@@ -2,6 +2,8 @@ import 'package:expense_splitter/core/widgets/navbar.dart';
 import 'package:expense_splitter/features/trips/presentation/pages/trips_page.dart';
 import 'package:flutter/material.dart';
 
+final List<Widget> pages = [TripsPage()];
+
 class HomePage extends StatefulWidget {
   static MaterialPageRoute<HomePage> route() =>
       MaterialPageRoute(builder: (context) => HomePage());
@@ -16,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Expense Splitter")),
-      body: TripPage(),
+      body: TripsPage(),
       bottomNavigationBar: Navbar(),
     );
   }

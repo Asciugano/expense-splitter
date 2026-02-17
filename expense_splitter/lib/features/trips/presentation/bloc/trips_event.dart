@@ -12,8 +12,8 @@ final class GetTrips extends TripsEvent {}
 
 final class CreateTrip extends TripsEvent {
   final String name;
-  final String owner;
-  final List<String> partecipants;
+  final User owner;
+  final List<User> partecipants;
 
   const CreateTrip({
     required this.partecipants,
@@ -26,27 +26,20 @@ final class CreateTrip extends TripsEvent {
 }
 
 final class DeleteTrip extends TripsEvent {
-  final String tripID;
+  final Trip trip;
 
-  const DeleteTrip({required this.tripID});
+  const DeleteTrip({required this.trip});
 
   @override
-  List<Object?> get props => [tripID];
+  List<Object?> get props => [trip];
 }
 
 final class UpdateTrip extends TripsEvent {
-  final String tripID;
-  final String name;
-  final List<String>? partecipants;
-  final List<String>? expenses;
+  final Trip trip;
+  final Trip newTrip;
 
-  const UpdateTrip({
-    required this.tripID,
-    required this.name,
-    this.partecipants,
-    this.expenses,
-  });
+  const UpdateTrip({required this.trip, required this.newTrip});
 
   @override
-  List<Object?> get props => [tripID, name];
+  List<Object?> get props => [newTrip];
 }

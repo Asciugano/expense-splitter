@@ -12,11 +12,21 @@ export async function protectedRoute(
   next: NextFunction,
 ) {
   try {
-    const token = req.cookies.jwt;
-    if (!token)
-      return res
-        .status(401)
-        .json({ error: true, message: "Unauthorized - No token provided" });
+    let token = req.cookies.jwt;
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res
+          .status(401)
+          .json({ error: true, message: "Unauthorized - No token provided" });
+      }
+      token = authHeader.split(" ")[1];
+
+      if (!token)
+        return res
+          .status(401)
+          .json({ error: true, message: "Unauthorized - No token provided" });
+    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded)

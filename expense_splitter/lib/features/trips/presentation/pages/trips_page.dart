@@ -5,16 +5,23 @@ import 'package:expense_splitter/features/trips/presentation/widgests/trip_widge
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class TripPage extends StatefulWidget {
-  static MaterialPageRoute<TripPage> route() =>
-      MaterialPageRoute(builder: (context) => TripPage());
-  const TripPage({super.key});
+class TripsPage extends StatefulWidget {
+  static MaterialPageRoute<TripsPage> route() =>
+      MaterialPageRoute(builder: (context) => TripsPage());
+  const TripsPage({super.key});
 
   @override
-  State<TripPage> createState() => _TripPageState();
+  State<TripsPage> createState() => _TripsPageState();
 }
 
-class _TripPageState extends State<TripPage> {
+class _TripsPageState extends State<TripsPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<TripsBloc>().add(GetTrips());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,18 +38,29 @@ class _TripPageState extends State<TripPage> {
               return const Center(child: Text("No trips yet. Add one!"));
             }
 
-            return ListView.builder(
-              itemCount: state.trips.length,
-              itemBuilder: (context, idx) {
-                final trip = state.trips[idx];
-
-                return TripWidget(trip: trip);
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<TripsBloc>().add(GetTrips());
+                await context.read<TripsBloc>().stream.firstWhere(
+                  (s) => s is! TripsLoading,
+                );
               },
+              child: ListView.builder(
+                itemCount: state.trips.length,
+                itemBuilder: (context, idx) {
+                  final trip = state.trips[idx];
+
+                  return TripWidget(trip: trip);
+                },
+              ),
             );
           }
-          // TODO: cambiare questo
-          return const Center(child: Text("test"));
+          return const SizedBox();
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.add),
       ),
     );
   }
