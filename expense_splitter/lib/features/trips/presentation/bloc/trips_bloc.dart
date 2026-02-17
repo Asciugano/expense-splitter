@@ -56,7 +56,7 @@ class TripsBloc extends Bloc<TripsEvent, TripsState> {
 
     res.fold(
       (l) => emit(TripsFailure(l.message)),
-      (r) => emit(TripOperationSuccess()),
+      (r) => _emitSuccess(null, emit),
     );
   }
 
@@ -71,10 +71,12 @@ class TripsBloc extends Bloc<TripsEvent, TripsState> {
     );
   }
 
-  void _emitSuccess(Trip trip, Emitter<TripsState> emit) async {
+  void _emitSuccess(Trip? trip, Emitter<TripsState> emit) async {
     final currentTrips = List<Trip>.from((state as TripsLoaded).trips);
-    currentTrips.add(trip);
+    if (trip != null) {
+      currentTrips.add(trip);
+    }
 
-    emit(TripSuccess(currentTrips));
+    emit(TripsLoaded(currentTrips));
   }
 }
