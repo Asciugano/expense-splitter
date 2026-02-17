@@ -55,7 +55,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   Future<User?> getCurrentUser() async {
     try {
       final res = await apiClient.get("/auth/me");
-      return User.fromJson(res);
+      return User.fromJson(res['user']);
     } catch (e) {
       throw ServerException(e.toString());
     }

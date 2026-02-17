@@ -8,6 +8,13 @@ class TokenStorage {
     await _storage.write(key: 'refreshToken', value: refresh);
   }
 
+  Future<Map<String, String?>> getTokens() async {
+    final access = await _storage.read(key: 'accessToken');
+    final refresh = await _storage.read(key: 'refreshToken');
+
+    return {'accessToken': access, 'refreshToken': refresh};
+  }
+
   Future<String?> getAccessToken() async {
     return await _storage.read(key: 'accessToken');
   }
