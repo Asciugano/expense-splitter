@@ -1,4 +1,5 @@
 import 'package:expense_splitter/core/constraints.dart';
+import 'package:expense_splitter/core/pages/home_page.dart';
 import 'package:expense_splitter/core/utils/show_snackbar.dart';
 import 'package:expense_splitter/core/widgets/loader.dart';
 import 'package:expense_splitter/features/auth/presentation/bloc/auth_bloc.dart';
@@ -40,6 +41,10 @@ class _RegisterPageState extends State<RegisterPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthFailure) showSnackBar(context, state.message);
+          if (state is AuthSuccess) {
+            Navigator.pushReplacement(context, HomePage.route());
+          }
+          if (state is AuthLogout) showSnackBar(context, 'Logout successfully');
         },
         builder: (context, state) {
           if (state is AuthLoading) {
