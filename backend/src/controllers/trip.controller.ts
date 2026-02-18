@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import Trip from "../models/trip.ts";
+import Trip from "../models/trip.model.ts";
 import type { AuthRequest } from "../requests/auth.request.ts";
 
 export async function getTripByID(

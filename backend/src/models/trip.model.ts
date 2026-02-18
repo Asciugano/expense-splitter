@@ -1,5 +1,5 @@
 import mongoose, { Types, type HydratedDocument } from "mongoose";
-import type { UserDocument } from "./user.ts";
+import type { UserDocument } from "./user.model.ts";
 
 const tripSchema = new mongoose.Schema(
   {
@@ -11,6 +11,7 @@ const tripSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     partecipants: [
       {

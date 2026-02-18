@@ -2,6 +2,12 @@ import mongoose, { Types, type HydratedDocument } from "mongoose";
 
 const expenseSchema = new mongoose.Schema(
   {
+    paidBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     amount: {
       type: Number,
       required: true,
@@ -14,6 +20,7 @@ const expenseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Trip",
       required: true,
+      index: true,
     },
   },
   { timestamps: true },
@@ -22,7 +29,8 @@ const expenseSchema = new mongoose.Schema(
 export type ExpenseDocument = HydratedDocument<{
   amount: number;
   title: string;
-  trip: Types.ObjectId;
+  paidBy: Types.ObjectId;
+  tripId: Types.ObjectId;
 }>;
 
 const Expense = mongoose.model("Expense", expenseSchema);

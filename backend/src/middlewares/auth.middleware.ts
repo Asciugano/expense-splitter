@@ -1,7 +1,7 @@
 import type { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { config } from "dotenv";
-import User from "../models/user.ts";
+import User from "../models/user.model.ts";
 import type { AuthRequest } from "../requests/auth.request.ts";
 
 config();

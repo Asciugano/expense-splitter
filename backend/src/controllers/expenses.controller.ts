@@ -1,5 +1,5 @@
-import Expense from "../models/expense.ts";
-import Trip from "../models/trip.ts";
+import Expense from "../models/expense.model.ts";
+import Trip from "../models/trip.model.ts";
 import type { AuthRequest } from "../requests/auth.request.ts";
 import type { Response } from "express";
 
@@ -101,7 +101,7 @@ export async function deleteExpense(
         .json({ error: true, message: "Unable to find the requested expense" });
 
     if (!req.user) return;
-    if (!req.user.trips.includes(expense.tripId698dad06d06240a228e5542a))
+    if (!req.user.trips.includes(expense.tripId))
       return res
         .status(401)
         .json({ error: true, message: "This expense is not in your trips" });
@@ -148,32 +148,6 @@ export async function getExpense(
       });
 
     res.json({ expense });
-  } catch (e) {
-    console.error(`error in getExpense controller: ${e}`);
-    res.status(500).json({ error: true, message: "Someting went wrog" });
-  }
-}
-
-export async function pay(req: AuthRequest<{ id: string }>, res: Response) {
-  const { amount } = req.body;
-  try {
-    if (!amount || amount <= 0)
-      return res.status(400).json({
-        error: true,
-        message: "You need to specify how mutch you pay back",
-      });
-
-    const expense = await Expense.findById(req.params.id);
-    if (!expense)
-      return res
-        .status(404)
-        .json({ error: true, message: "Unable to find the requested expense" });
-
-    expense.amount -= amount;
-    if (expense.amount <= 0) await expense.deleteOne();
-
-    await expense.save();
-    res.json({ amount: expense.amount });
   } catch (e) {
     console.error(`error in getExpense controller: ${e}`);
     res.status(500).json({ error: true, message: "Someting went wrog" });

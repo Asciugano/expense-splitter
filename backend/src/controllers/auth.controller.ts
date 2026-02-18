@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "../lib/jwt.ts";
-import User from "../models/user.ts";
+import User from "../models/user.model.ts";
 import jwt from "jsonwebtoken";
 import type { AuthRequest } from "../requests/auth.request.ts";
 

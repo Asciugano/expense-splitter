@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { type UserDocument } from "../models/user.ts";
+import { type UserDocument } from "../models/user.model.ts";
 
 export interface AuthRequest<
   Params = {},
