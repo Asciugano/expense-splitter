@@ -1,3 +1,4 @@
+import 'package:expense_splitter/features/trips/presentation/pages/trip_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_splitter/core/entities/trip.dart';
 
@@ -20,9 +21,12 @@ class TripWidget extends StatelessWidget {
           ),
           elevation: 2,
           child: ListTile(
-            title: Text(
-              trip.name,
-              style: Theme.of(context).textTheme.titleLarge,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(trip.name, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 8),
+              ],
             ),
             subtitle: Text('${trip.partecipants.length} participants'),
             trailing: Column(
@@ -41,10 +45,7 @@ class TripWidget extends StatelessWidget {
                 ),
               ],
             ),
-            onTap: () {
-              // TODO: trip detail
-              print('detail');
-            },
+            onTap: () => Navigator.push(context, TripDetail.route(trip: trip)),
           ),
         ),
       ),
