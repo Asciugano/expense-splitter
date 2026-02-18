@@ -22,9 +22,6 @@ class ProfilePage extends StatelessWidget {
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 _showVerification(context);
-                context.read<AuthBloc>().add(AuthLogout());
-                Navigator.pushReplacement(context, LoginPage.route());
-                currentPageNotifier.value = 0;
               },
               child: Text('Logout'),
             ),
@@ -35,6 +32,48 @@ class ProfilePage extends StatelessWidget {
   }
 
   void _showVerification(BuildContext context) {
-    // TODO: add verification POPUP
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              top: 16,
+              right: 16,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    // TODO: abbellire
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Deny'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                    onPressed: () {
+                      context.read<AuthBloc>().add(AuthLogout());
+                      Navigator.pushReplacement(context, LoginPage.route());
+                      currentPageNotifier.value = 0;
+                    },
+                    child: Text('Logout'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
