@@ -64,7 +64,7 @@ class AuthRemoteDataSourceImpl extends AuthRemoteDataSource {
   @override
   Future<String> logout() async {
     try {
-      final res = await apiClient.post('/auth/logout', null);
+      final res = await apiClient.post('/auth/logout', {});
       tokenStorage.clear();
 
       return res['message'];
