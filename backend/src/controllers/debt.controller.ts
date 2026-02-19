@@ -1,8 +1,10 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../requests/auth.request.ts";
+import { SplitStrategy } from "../types.ts";
 import Expense from "../models/expense.model.ts";
 import Debt from "../models/debt.model.ts";
 import mongoose from "mongoose";
+import Trip from "../models/trip.model.ts";
 
 export async function pay(req: AuthRequest<{ id: string }>, res: Response) {
   const { amount } = req.body;
@@ -30,11 +32,10 @@ export async function pay(req: AuthRequest<{ id: string }>, res: Response) {
     expense.amount -= paidAmount;
 
     if (debt.amount <= 0) await debt.deleteOne();
+    else await debt.save();
+
     if (expense.amount <= 0) await expense.deleteOne();
-    else {
-      await debt.save();
-      await expense.save();
-    }
+    else await expense.save();
     res.json({ amount: expense.amount });
   } catch (e) {
     console.error(`error in pay controller: ${e}`);
@@ -72,7 +73,7 @@ export async function getTotalDebt(
 
     const totalDebt = await Debt.aggregate([
       { $match: { userId: req.user._id } },
-      { $group: { _id: "$userId", totalDebt: { $sum: "$amount" } } },
+      { $group: { _id: null, totalDebt: { $sum: "$amount" } } },
     ]);
 
     res.json({ totalDebt: totalDebt[0]?.totalDebt || 0.0 });
@@ -90,7 +91,7 @@ export async function getDebtByTrip(
     if (!req.user) return;
 
     const totalDebt = await Debt.aggregate([
-      { $match: { UserId: req.user._id } },
+      { $match: { userId: req.user._id } },
       {
         $lookup: {
           from: "expenses",
@@ -119,7 +120,7 @@ export async function createDebt(
   req: AuthRequest<{ id: string }>,
   res: Response,
 ) {
-  const { method } = req.body;
+  const { splitDetail } = req.body;
   try {
     const expense = await Expense.findById(req.params.id);
     if (!expense)
@@ -127,7 +128,103 @@ export async function createDebt(
         .status(404)
         .json({ error: true, message: "Unable to find the requested expense" });
 
-    // TODO: finire
+    const trip = await Trip.findById(expense.tripId);
+    if (!trip)
+      return res
+        .status(404)
+        .json({ error: true, message: "Unable to find the requeted trip" });
+
+    if (!splitDetail || !splitDetail.strategy)
+      return res.status(400).json({ error: true, message: "Invalid body" });
+
+    if (!req.user) return;
+
+    if (!trip.partecipants.some((p) => p.equals(req.user!._id)))
+      return res
+        .status(401)
+        .json({ error: true, message: "You aren't in this trip" });
+
+    const debtsToCreate: { userId: string; amount: number }[] = [];
+
+    switch (splitDetail.strategy) {
+      case SplitStrategy.EQUAL:
+        const share =
+          Math.round((expense.amount / trip.partecipants.length) * 100) / 100;
+
+        expense.paidBy = req.user._id;
+
+        for (const partecipant of trip.partecipants) {
+          if (partecipant.equals(expense.paidBy)) continue;
+
+          debtsToCreate.push({ userId: partecipant.toString(), amount: share });
+        }
+        break;
+      case SplitStrategy.EXACT:
+        const total = splitDetail.splits.reduce(
+          (sum: number, s: any) => sum + s.amount,
+          0,
+        );
+
+        if (total != expense.amount)
+          return res
+            .status(400)
+            .json({ error: true, message: "Split total mismatch" });
+
+        for (const split of splitDetail.splits) {
+          if (split.userId === expense.paidBy.toString()) continue;
+
+          debtsToCreate.push({
+            userId: split.userId,
+            amount: split.amount,
+          });
+        }
+        break;
+
+      case SplitStrategy.PERCENTAGE:
+        const totalPercentage = splitDetail.splits.reduce(
+          (sum: number, s: any) => sum + s.percentage,
+          0,
+        );
+
+        if (totalPercentage !== 100)
+          return res
+            .status(400)
+            .json({ error: true, message: "Percentage must sum to 100%" });
+
+        for (const split of splitDetail.splits) {
+          if (!trip.partecipants.some((p) => p.equals(split.userId)))
+            return res
+              .status(401)
+              .json({ error: true, message: "Not every user is in this trip" });
+
+          const amount = (expense.amount * split.percentage) / 100;
+
+          if (split.userId === expense.paidBy.toString()) continue;
+
+          debtsToCreate.push({
+            userId: split.userId,
+            amount,
+          });
+        }
+        break;
+
+      default:
+        return res
+          .status(400)
+          .json({ error: true, message: "Invalid split strategy" });
+    }
+
+    await expense.save();
+
+    await Debt.insertMany(
+      debtsToCreate.map((d) => ({
+        userId: d.userId,
+        expenseId: expense._id,
+        amount: d.amount,
+      })),
+    );
+
+    res.status(201).json({ message: "Debts created successully" });
   } catch (e) {
     console.error(`error in createDebt controller: ${e}`);
     res.status(500).json({ error: true, message: "Someting went wrog" });
