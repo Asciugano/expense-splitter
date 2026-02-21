@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import jwt from "jsonwebtoken";
 
-export async function generateAccessToken(
+export function generateAccessToken(
   userID: string,
   res: Response,
 ): Promise<string> {
@@ -19,5 +19,11 @@ export async function generateAccessToken(
 export function generateRefreshToken(userID: string): string {
   return jwt.sign({ userID: userID }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
+  });
+}
+
+export function generatetokenForTrip(tripID: string): string {
+  return jwt.sign({ tripID }, process.env.INVITE_TOKEN_SECRET, {
+    expiresIn: "24h",
   });
 }

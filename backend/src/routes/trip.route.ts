@@ -2,6 +2,7 @@ import express from "express";
 import {
   createTrip,
   deleteTrip,
+  generateInviteToken,
   getTripByID,
   getTripOfUser,
   joinTrip,
@@ -15,7 +16,8 @@ const router = express.Router();
 router.get("/", protectedRoute, getTripOfUser);
 // INFO: Get the trip with the id
 router.get("/:id", getTripByID);
-router.get("/join/:id", protectedRoute, joinTrip);
+router.post("/join", protectedRoute, joinTrip);
+router.post("/join/generate_invite/:id", protectedRoute, generateInviteToken);
 router.post("/", protectedRoute, createTrip);
 router.put("/:id", protectedRoute, updateTrip);
 router.delete("/:id", protectedRoute, deleteTrip);

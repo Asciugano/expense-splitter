@@ -1,23 +1,25 @@
-export enum SplitStrategy {
-  EQUAL = "EQUAL",
-  EXACT = "EXACT",
-  PERCENTAGE = "PERCENTAGE",
-  RATIO = "RATIO",
-}
+export const SplitStrategy = {
+  EQUAL: "EQUAL",
+  EXACT: "EXACT",
+  PERCENTAGE: "PERCENTAGE",
+  RATIO: "RATIO",
+} as const;
+
+export type SplitStrategy = (typeof SplitStrategy)[keyof typeof SplitStrategy];
 
 export type SplitDetail =
   | {
-      strategy: SplitStrategy.EQUAL;
+      strategy: typeof SplitStrategy.EQUAL;
     }
   | {
-      strategy: SplitStrategy.EXACT;
+      strategy: typeof SplitStrategy.EXACT;
       splits: {
         userId: string;
         amount: number;
       }[];
     }
   | {
-      strategy: SplitStrategy.RATIO;
+      strategy: typeof SplitStrategy.RATIO;
       splits: {
         userId: string;
         shares: number;

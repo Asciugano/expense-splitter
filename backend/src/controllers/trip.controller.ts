@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import Trip from "../models/trip.model.ts";
 import type { AuthRequest } from "../requests/auth.request.ts";
+import { generatetokenForTrip } from "../lib/jwt.ts";
+import jwt from "jsonwebtoken";
 
 export async function getTripByID(
   req: Request<{ id: string }, any>,
@@ -136,13 +138,49 @@ export async function createTrip(req: AuthRequest, res: Response) {
   }
 }
 
-export async function joinTrip(
+export async function generateInviteToken(
   req: AuthRequest<{ id: string }>,
   res: Response,
 ) {
   try {
     if (!req.user) return;
-    const trip = await Trip.findById(req.params.id).populate("expenses");
+
+    const trip = await Trip.findById(req.params.id);
+    if (!trip)
+      return res
+        .status(404)
+        .json({ error: true, message: "Unable to find the requested Trip" });
+
+    if (!req.user._id.equals(trip.owner))
+      return res.status(401).json({
+        error: true,
+        message: "Only the owner can generate the invite token",
+      });
+
+    const inviteToken = generatetokenForTrip(trip._id.toString());
+
+    res.json({ inviteToken });
+  } catch (e) {
+    console.error(`error in generateInviteToken controller: ${e}`);
+    res.status(500).json({ error: true, message: "Someting went wrog" });
+  }
+}
+
+export async function joinTrip(req: AuthRequest, res: Response) {
+  const { inviteToken } = req.body;
+  try {
+    if (!inviteToken)
+      return res
+        .status(400)
+        .json({ error: true, message: "You must pass a invite token" });
+    if (!req.user) return;
+    const decoded = jwt.verify(inviteToken, process.env.INVITE_TOKEN_SECRET);
+    if (!decoded)
+      return res
+        .status(400)
+        .json({ error: true, message: "Invalid invite token" });
+
+    const trip = await Trip.findById(decoded.tripID).populate("expenses");
     if (!trip)
       return res
         .status(404)
