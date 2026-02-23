@@ -9,6 +9,17 @@ export async function getAllExpenses(
   res: Response,
 ) {
   try {
+    const trip = await Trip.findById(req.params.id);
+    if (!trip)
+      return res
+        .status(404)
+        .json({ error: true, message: "Unable to find the requested trip" });
+
+    if (!trip.partecipants.some((p) => p.equals(req.user!._id)))
+      return res
+        .status(401)
+        .json({ error: true, message: "You are not in this trip" });
+
     const expenses = await Expense.find({ tripId: { $eq: req.params.id } });
     res.json({ expenses });
   } catch (e) {
@@ -34,8 +45,11 @@ export async function createExpense(
         .status(404)
         .json({ error: true, message: "unable to find the requested trip" });
 
+    if (!req.user) return;
+
     const newExpense = new Expense({
       title,
+      paidBy: req.user._id,
       amount,
       tripId: req.params.id,
     });
@@ -74,7 +88,7 @@ export async function updateExpenseStatus(
 
     if (expense.status === ExpenseStatus.PENDING) {
       const totalDebt = await Debt.aggregate([
-        { $match: { tripId: expense.tripId } },
+        { $match: { expenseId: expense.tripId } },
         { $group: { _id: null, totalDebt: { $sum: "$amount" } } },
       ]);
       if (totalDebt[0]?.totalDebt !== 0)
@@ -99,13 +113,16 @@ export async function updateExpenses(
   req: AuthRequest<{ id: string }>,
   res: Response,
 ) {
-  const { amount, title } = req.body;
+  const { title } = req.body;
   try {
     const expense = await Expense.findById(req.params.id);
     if (!expense)
       return res
         .status(404)
         .json({ error: true, message: "Unable to find the requested expense" });
+
+    if (expense.status === ExpenseStatus.PAID)
+      return res.status(400).json({ message: "This expense was already paid" });
 
     const trip = await Trip.findById(expense.tripId);
     if (!trip)
@@ -120,7 +137,6 @@ export async function updateExpenses(
         message: "Only the owner of the trip can modify the properies",
       });
 
-    if (amount) expense.amount = amount;
     if (title) expense.title = title;
 
     await expense.save();
@@ -162,6 +178,7 @@ export async function deleteExpense(
         });
     }
 
+    await Debt.deleteMany({ expenseId: expense._id });
     await expense.deleteOne();
     res.status(204);
   } catch (e) {
@@ -212,7 +229,7 @@ export async function getExpenseDebt(
       return res
         .status(404)
         .json({ error: true, message: "Unable to find the requested trip" });
-    if (trip.partecipants.some((p) => p.equals(req.user!._id)))
+    if (!trip.partecipants.some((p) => p.equals(req.user!._id)))
       return res
         .status(401)
         .json({ error: true, message: "You aren't in this trip" });
@@ -222,7 +239,7 @@ export async function getExpenseDebt(
     }
 
     const totalDebt = await Debt.aggregate([
-      { $match: { tripId: expense.tripId } },
+      { $match: { expenseId: expense.tripId } },
       { $group: { _id: null, totalDebt: { $sum: "$amount" } } },
     ]);
     res.json({ amount: totalDebt[0]?.totalDebt || 0 });
