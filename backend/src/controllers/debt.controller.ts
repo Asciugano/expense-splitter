@@ -21,22 +21,20 @@ export async function pay(req: AuthRequest<{ id: string }>, res: Response) {
         .status(404)
         .json({ error: true, message: "Unable to find the requested debt" });
 
-    const expense = await Expense.findById(debt.expenseId);
-    if (!expense)
+    if (!req.user) return;
+
+    if (!debt.userId.equals(req.user._id))
       return res
-        .status(404)
-        .json({ error: true, message: "Unable to find the requested expense" });
+        .status(401)
+        .json({ error: true, message: "This is not your debt" });
 
     const paidAmount = Math.min(amount, debt.amount);
     debt.amount -= paidAmount;
-    expense.amount -= paidAmount;
 
     if (debt.amount <= 0) await debt.deleteOne();
     else await debt.save();
 
-    if (expense.amount <= 0) await expense.deleteOne();
-    else await expense.save();
-    res.json({ amount: expense.amount });
+    res.json({ amount: debt.amount });
   } catch (e) {
     console.error(`error in pay controller: ${e}`);
     res.status(500).json({ error: true, message: "Someting went wrog" });
@@ -146,12 +144,12 @@ export async function createDebt(
 
     const debtsToCreate: { userId: string; amount: number }[] = [];
 
+    expense.paidBy = req.user._id;
+
     switch (splitDetail.strategy) {
       case SplitStrategy.EQUAL:
         const share =
           Math.round((expense.amount / trip.partecipants.length) * 100) / 100;
-
-        expense.paidBy = req.user._id;
 
         for (const partecipant of trip.partecipants) {
           if (partecipant.equals(expense.paidBy)) continue;
@@ -171,6 +169,11 @@ export async function createDebt(
             .json({ error: true, message: "Split total mismatch" });
 
         for (const split of splitDetail.splits) {
+          if (!trip.partecipants.some((p) => p.equals(split.userId)))
+            return res
+              .status(401)
+              .json({ error: true, message: "Not every user is in this trip" });
+
           if (split.userId === expense.paidBy.toString()) continue;
 
           debtsToCreate.push({

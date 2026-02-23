@@ -1,4 +1,5 @@
-import Expense from "../models/expense.model.ts";
+import Debt from "../models/debt.model.ts";
+import Expense, { ExpenseStatus } from "../models/expense.model.ts";
 import Trip from "../models/trip.model.ts";
 import type { AuthRequest } from "../requests/auth.request.ts";
 import type { Response } from "express";
@@ -53,6 +54,47 @@ export async function createExpense(
   }
 }
 
+export async function updateExpenseStatus(
+  req: AuthRequest<{ id: string }>,
+  res: Response,
+) {
+  try {
+    if (!req.user) return;
+    const expense = await Expense.findById(req.params.id);
+    if (!expense)
+      return res
+        .status(404)
+        .json({ error: true, message: "Unable to find the requested expense" });
+
+    if (!expense.paidBy.equals(req.user._id))
+      return res.status(401).json({
+        error: true,
+        message: "This is not your expense, you cant update this",
+      });
+
+    if (expense.status === ExpenseStatus.PENDING) {
+      const totalDebt = await Debt.aggregate([
+        { $match: { tripId: expense.tripId } },
+        { $group: { _id: null, totalDebt: { $sum: "$amount" } } },
+      ]);
+      if (totalDebt[0]?.totalDebt !== 0)
+        return res.json({
+          message:
+            "Unable to change the status because not everyone has paid yet",
+        });
+
+      expense.status = ExpenseStatus.PAID;
+    }
+
+    await expense.save();
+
+    res.json({ expense });
+  } catch (e) {
+    console.error(`error in updateExpenseStatus controller: ${e}`);
+    res.status(500).json({ error: true, message: "Someting went wrog" });
+  }
+}
+
 export async function updateExpenses(
   req: AuthRequest<{ id: string }>,
   res: Response,
@@ -72,7 +114,7 @@ export async function updateExpenses(
         .json({ error: true, message: "Unable to find the requested trip" });
 
     if (!req.user) return;
-    if (!trip.owner._id.equals(req.user._id))
+    if (!trip.owner.equals(req.user._id))
       return res.status(401).json({
         error: true,
         message: "Only the owner of the trip can modify the properies",
@@ -150,6 +192,42 @@ export async function getExpense(
     res.json({ expense });
   } catch (e) {
     console.error(`error in getExpense controller: ${e}`);
+    res.status(500).json({ error: true, message: "Someting went wrog" });
+  }
+}
+
+export async function getExpenseDebt(
+  req: AuthRequest<{ id: string }>,
+  res: Response,
+) {
+  try {
+    const expense = await Expense.findById(req.params.id);
+    if (!expense)
+      return res
+        .status(404)
+        .json({ error: true, message: "Unable to find the requested expense" });
+
+    const trip = await Trip.findById(expense.tripId);
+    if (!trip)
+      return res
+        .status(404)
+        .json({ error: true, message: "Unable to find the requested trip" });
+    if (trip.partecipants.some((p) => p.equals(req.user!._id)))
+      return res
+        .status(401)
+        .json({ error: true, message: "You aren't in this trip" });
+
+    if (expense.status === ExpenseStatus.PAID) {
+      return res.json({ amount: 0 });
+    }
+
+    const totalDebt = await Debt.aggregate([
+      { $match: { tripId: expense.tripId } },
+      { $group: { _id: null, totalDebt: { $sum: "$amount" } } },
+    ]);
+    res.json({ amount: totalDebt[0]?.totalDebt || 0 });
+  } catch (e) {
+    console.error(`error in getExpenseDebt controller: ${e}`);
     res.status(500).json({ error: true, message: "Someting went wrog" });
   }
 }

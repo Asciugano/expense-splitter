@@ -1,5 +1,12 @@
 import mongoose, { Types, type HydratedDocument } from "mongoose";
 
+export const ExpenseStatus = {
+  PAID: "PAID",
+  PENDING: "PENDING",
+} as const;
+
+export type ExpenseStatus = (typeof ExpenseStatus)[keyof typeof ExpenseStatus];
+
 const expenseSchema = new mongoose.Schema(
   {
     paidBy: {
@@ -22,6 +29,11 @@ const expenseSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    status: {
+      type: String,
+      enum: Object.values(typeof ExpenseStatus),
+      default: "PENDING",
+    },
   },
   { timestamps: true },
 );
@@ -31,6 +43,7 @@ export type ExpenseDocument = HydratedDocument<{
   title: string;
   paidBy: Types.ObjectId;
   tripId: Types.ObjectId;
+  status: ExpenseStatus;
 }>;
 
 const Expense = mongoose.model("Expense", expenseSchema);
